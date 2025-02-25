@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+
+{% block title %}Add Record{% endblock %}
+
+{% block content %}
+    <h1 class="text-center">Додати запис</h1>
+
+    <form action="/add" method="post" class="mt-4">
+        <div class="mb-3">
+            <label for="amount" class="form-label">Сума:</label>
+            <input type="number" step="0.01" name="amount" id="amount" class="form-control" required>
+        </div>
+
+        <div class="mb-3">
+            <label for="category" class="form-label">Категорія:</label>
+            <select name="category" id="category" class="form-select">
+                {% for cat in categories %}
+                    <option value="{{ cat.name }}">{{ cat.name }}</option>
+                {% endfor %}
+            </select>
+            <small class="form-text text-muted">Або введіть нову категорію нижче.</small>
+        </div>
+
+        <div class="mb-3">
+            <input type="text" name="new_category" class="form-control" placeholder="Нова категорія">
+        </div>
+
+        <div class="mb-3">
+            <label for="tags">Tags (comma-separated):</label>
+            <input type="text" name="tags" id="tags" placeholder="e.g. groceries, bills">
+        </div>
+      
+        <div class="mb-3">
+            <label for="type" class="form-label">Тип:</label>
+            <select name="type" id="type" class="form-select">
+                <option value="дохід">Дохід</option>
+                <option value="витрата">Витрата</option>
+            </select>
+        </div>
+
+        <div class="mb-3">
+            <label for="date" class="form-label">Дата:</label>
+            <input type="date" name="date" id="date" class="form-control" required>
+        </div>
+
+        <button type="submit" class="btn btn-primary">Додати</button>
+    </form>
+
+    <div class="mt-4 text-center">
+        <a href="/view" class="btn btn-link">Переглянути записи</a>
+    </div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            let today = new Date().toISOString().split('T')[0];  
+            document.getElementById("date").value = today;  
+        });
+    </script>
+{% endblock %}

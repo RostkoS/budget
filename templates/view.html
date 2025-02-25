@@ -1,0 +1,175 @@
+{% extends "base.html" %}
+
+{% block title %}View Records{% endblock %}
+
+{% block content %}
+    <h2 class="text-center mb-4">Сімейний бюджет</h2>
+
+    <form method="GET" action="/view" class="mb-4">
+        <div class="row g-3">
+            <div class="col-md-3">
+                <label for="period" class="form-label">Перiод:</label>
+                <select name="period" id="period" class="form-select">
+                    <option value="місяць" {% if period == 'місяць' %}selected{% endif %}>Мiсяць</option>
+                    <option value="півроку" {% if period == 'півроку' %}selected{% endif %}>Пiвроку</option>
+                    <option value="рік" {% if period == 'рік' %}selected{% endif %}>Рiк</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label for="category" class="form-label">Select Category:</label>
+                <select name="category" id="category" class="form-select">
+                    <option value="">All Categories</option>
+                    {% for cat in categories %}
+                        <option value="{{ cat.name }}" {% if cat.name == category %} selected {% endif %}>{{ cat.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label for="tag" class="form-label">Filter by Tag:</label>
+                <select name="tag" id="tag" class="form-select" onchange="this.form.submit()">
+                    <option value="">All Tags</option>
+                    {% for tag in tags %}
+                        <option value="{{ tag.name }}" {% if selected_tag == tag.name %}selected{% endif %}>{{ tag.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label for="record_type" class="form-label">Select Type:</label>
+                <select name="record_type" id="record_type" class="form-select">
+                    <option value="" {% if not record_type %} selected {% endif %}>All</option>
+                    <option value="дохід" {% if record_type == 'дохід' %} selected {% endif %}>Income</option>
+                    <option value="витрата" {% if record_type == 'витрата' %} selected {% endif %}>Expense</option>
+                </select>
+            </div>
+        </div>
+        <div class="d-flex justify-content-between mt-3">
+            <button type="submit" class="btn btn-primary">Apply Filters</button>
+            
+            <a href="{{ url_for('records.clear_filters') }}" class="btn btn-secondary">Очистити фільтри</a>
+            <a href="{{ url_for('records.export', period=period, category=category, record_type=record_type, format='csv') }}" class="btn btn-success">Export as CSV</a>
+            
+    <a href="/add" class="btn btn-primary">Add Record</a>
+        </div>
+    </form>
+
+    <h3 class="mt-4">Family Members' Budgets</h3>
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>
+                    <a href="{{ url_for('records.view_records', sort_by_family='email', sort_order_family='asc' if sort_order_family == 'desc' else 'desc') }}">Email</a>
+                    {% if sort_by_family == 'email' %}
+                        {% if sort_order_family == 'asc' %}↑{% else %}↓{% endif %}
+                    {% endif %}
+                </th>
+                <th>
+                    <a href="{{ url_for('records.view_records', sort_by_family='total_income', sort_order_family='asc' if sort_order_family == 'desc' else 'desc') }}">Total Income</a>
+                    {% if sort_by_family == 'total_income' %}
+                        {% if sort_order_family == 'asc' %}↑{% else %}↓{% endif %}
+                    {% endif %}
+                </th>
+                <th>
+                    <a href="{{ url_for('records.view_records', sort_by_family='total_expenses', sort_order_family='asc' if sort_order_family == 'desc' else 'desc') }}">Total Expenses</a>
+                    {% if sort_by_family == 'total_expenses' %}
+                        {% if sort_order_family == 'asc' %}↑{% else %}↓{% endif %}
+                    {% endif %}
+                </th>
+                <th>
+                    <a href="{{ url_for('records.view_records', sort_by_family='net_balance', sort_order_family='asc' if sort_order_family == 'desc' else 'desc') }}">Net Balance</a>
+                    {% if sort_by_family == 'net_balance' %}
+                        {% if sort_order_family == 'asc' %}↑{% else %}↓{% endif %}
+                    {% endif %}
+                </th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for member in family_members %}
+                <tr>
+                    <td>{{ member.email }}</td>
+                    <td class="text-success">
+                        {{ user_financials[member.id].total_income if member.id in user_financials else 0 }}
+                    </td>
+                    <td class="text-danger">
+                        -{{ user_financials[member.id].total_expenses if member.id in user_financials else 0 }}
+                    </td>
+                    <td class="{% if user_financials[member.id].net_balance >= 0 %}text-success{% else %}text-danger{% endif %}">
+                        {{ user_financials[member.id].net_balance if member.id in user_financials else 0 }}
+                    </td>
+                </tr>
+            {% endfor %}
+        </tbody>
+        
+        <tfoot>
+            <tr class="{% if net_balance >= 0 %}table-success{% else %}table-danger{% endif %}">
+                <td><strong>Totals:</strong></td>
+                <td>{{ total_income }}</td>
+                <td>-{{ total_expenses }}</td>
+                <td> {{ net_balance }}</td>
+            </tr>
+        </tfoot>
+    </table>
+
+    <h3 class="mb-3">Records</h3>
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>
+                    <a href="{{ url_for('records.view_records', sort_by='date', sort_order='asc' if sort_order == 'desc' else 'desc') }}">Date</a>
+                    {% if sort_by == 'date' %}
+                        {% if sort_order == 'asc' %}↑{% else %}↓{% endif %}
+                    {% endif %}
+                </th>
+                <th>
+                    <a href="{{ url_for('records.view_records', sort_by='amount', sort_order='asc' if sort_order == 'desc' else 'desc') }}">Amount</a>
+                    {% if sort_by == 'amount' %}
+                        {% if sort_order == 'asc' %}↑{% else %}↓{% endif %}
+                    {% endif %}
+                </th>
+                <th>
+                    <a href="{{ url_for('records.view_records', sort_by='category', sort_order='asc' if sort_order == 'desc' else 'desc') }}">Category</a>
+                    {% if sort_by == 'category' %}
+                        {% if sort_order == 'asc' %}↑{% else %}↓{% endif %}
+                    {% endif %}
+                </th>
+                <th>Tags</th>
+                <th>
+                    <a href="{{ url_for('records.view_records', sort_by='type', sort_order='asc' if sort_order == 'desc' else 'desc') }}">Type</a>
+                    {% if sort_by == 'type' %}
+                        {% if sort_order == 'asc' %}↑{% else %}↓{% endif %}
+                    {% endif %}
+                </th>
+                <th>User</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for record in records %}
+                <tr class="{% if record.type == 'дохід' %}table-success{% else %}table-danger{% endif %}">
+                    <td>{{ record.date }}</td>
+                    <td class="{% if record.type == 'витрата' %}text-danger{% else %}text-success{% endif %}">
+                        {% if record.type == 'витрата' %}-{% endif %}{{ record.amount }}
+                    </td>
+                    <td>{{ record.category }}</td>
+                    <td>
+                        {% for tag in record.tags %}
+                            <span class="badge bg-info">{{ tag.name }}</span>
+                        {% endfor %}
+                    </td>
+                    <td>{{ record.type }}</td>
+                    <td>{{ record.user.email }}</td>
+                    <td>
+                        <a href="/edit_record/{{ record.id }}" class="btn btn-warning btn-sm">Edit</a>
+                        <form action="{{ url_for('records.delete_record', record_id=record.id) }}" method="POST" style="display:inline;">
+                            <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Are you sure?');">Delete</button>
+                        </form>
+                    </td>
+                </tr>
+            {% else %}
+                <tr>
+                    <td colspan="7" class="text-center">No records found for the selected period.</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+{% endblock %}

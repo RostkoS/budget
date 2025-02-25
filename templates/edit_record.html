@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+
+{% block title %}Edit Record{% endblock %}
+
+{% block content %}
+    <h2>Edit Record</h2>
+    <form method="POST">
+        <div class="mb-3">
+            <label for="amount" class="form-label">Amount</label>
+            <input type="number" id="amount" name="amount" class="form-control" value="{{ record.amount }}" required>
+        </div>
+
+        <div class="mb-3">
+            <label for="category" class="form-label">Category</label>
+            <select id="category" name="category" class="form-select" required>
+                {% for cat in categories %}
+                    <option value="{{ cat.id }}" {% if cat.id == record.category.id %} selected {% endif %}>{{ cat.name }}</option>
+                {% endfor %}
+            </select>
+            <small class="form-text text-muted">Or enter a new category below.</small>
+        </div>
+
+        <div class="mb-3">
+            <input type="text" name="new_category" class="form-control" placeholder="New category">
+        </div>
+        <div class="mb-3">
+            <label for="tags">Tags (comma-separated):</label>
+            <input type="text" name="tags" id="tags" placeholder="e.g. groceries, bills">
+        </div>
+
+        <div class="mb-3">
+            <label for="type" class="form-label">Type</label>
+            <select id="type" name="type" class="form-select" required>
+                <option value="дохід" {% if record.type == 'дохід' %} selected {% endif %}>Income</option>
+                <option value="витрата" {% if record.type == 'витрата' %} selected {% endif %}>Expense</option>
+            </select>
+        </div>
+
+        <div class="mb-3">
+            <label for="date" class="form-label">Date</label>
+            <input type="date" id="date" name="date" class="form-control" value="{{ record.date[:10] }}" required>
+        </div>
+
+        <button type="submit" class="btn btn-success w-100">Save</button>
+    </form>
+
+    <a href="/view" class="btn btn-secondary mt-4 w-100">Back to Records</a>
+{% endblock %}
+
+
